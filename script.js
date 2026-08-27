@@ -19,8 +19,8 @@
  *
  * URL SCHEME
  * ----------
- * Base app:   yoursite.com/srl.html
- * Short link: yoursite.com/srl.html?c=xyzw   (works with zero server config)
+ * Base app:   yoursite.com/index.html
+ * Short link: yoursite.com/index.html?c=xyzw   (works with zero server config)
  */
 
 const LOCAL_STORAGE_KEY = "srl_links_local";
@@ -120,7 +120,7 @@ function generateCode(existingCodes) {
 
 function buildShortUrl(code) {
     const origin = window.location.origin;
-    const path = window.location.pathname.replace(/\/[^/]*$/, "/srl.html");
+    const path = window.location.pathname.replace(/\/[^/]*$/, "/index.html");
     return `${origin}${path}?c=${code}`;
 }
 

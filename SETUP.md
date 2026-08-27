@@ -87,8 +87,8 @@ locks everything. Set permanent rules instead:
 
 ## Step 5 — Upload and open
 
-1. Upload `srl.html`, `style.css`, `script.js`, and `firebase-config.js` to your site (same folder — same as before, `links.json` is no longer needed and can be deleted).
-2. Open `yoursite.com/srl.html`.
+1. Upload `index.html`, `style.css`, `script.js`, and `firebase-config.js` to your site (same folder — same as before, `links.json` is no longer needed and can be deleted).
+2. Open `yoursite.com/index.html`.
 3. The small dot near the top should turn **green** with "Synced — links work on any device". If it's red, double check `firebase-config.js` and the database rules.
 4. Shorten a URL, then open the short link on a *different* device — it should redirect immediately. No redeploy, ever again.
 
@@ -101,7 +101,7 @@ locks everything. Set permanent rules instead:
 | Shared storage | `links.json` (static file) | Firebase Realtime Database (live) |
 | Making a link global | Manually edit `links.json` + redeploy | Automatic, instant |
 | Per-device fallback | `localStorage` | `localStorage` (only used if offline / not configured) |
-| Files needed | `srl.html`, `style.css`, `script.js`, `links.json` | `srl.html`, `style.css`, `script.js`, `firebase-config.js` |
+| Files needed | `index.html`, `style.css`, `script.js`, `links.json` | `index.html`, `style.css`, `script.js`, `firebase-config.js` |
 
 ## Free tier limits (Firebase Spark plan)
 
