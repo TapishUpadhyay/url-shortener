@@ -11,4 +11,4 @@
  * bit.ly works), but it can't do anything else to your Google account.
  */
 
-const CLOUD_API_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
+const CLOUD_API_URL = "https://script.google.com/macros/s/AKfycbw5XkTH7N1rkX_qtuWEu4GBbm4ISSv4PgSb0kEpcbZqjCEyVg911JYxFYhSjidYe6Le/exec";

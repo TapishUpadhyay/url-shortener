@@ -5,18 +5,16 @@
  * reads from and writes to. Google hosts and runs this for you — you don't
  * need a server.
  *
- * Expects a sheet tab named exactly "Links" with a header row:
+ * Expects the first tab of the spreadsheet to have a header row:
  *   code | url | createdAt
  *
  * See SETUP.md for how to install and deploy this.
  */
 
-const SHEET_NAME = "Links";
-
 function getSheet_() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
   if (!sheet) {
-    throw new Error(`Sheet tab "${SHEET_NAME}" not found. Create it with header row: code, url, createdAt`);
+    throw new Error("No sheet tab found. Add header row: code, url, createdAt");
   }
   return sheet;
 }

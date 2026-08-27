@@ -9,24 +9,25 @@ open the sheet and see every link as a normal spreadsheet.
 You still don't write or host any server. Google runs the small script
 for you, for free.
 
-Total setup time: **~5 minutes, one time only.**
+## ✅ Already done for you
+
+The Sheet has already been created with the right header row:
+**[SRL Links](https://docs.google.com/spreadsheets/d/1B-ap6N1ZFN7yw_6Lxkbl8aZs0tVjJ7iHkrsb86sSO7I/edit)**
+
+Everything below is what's left — about 3 minutes, one time only, and the
+remaining steps need a manual click-through in your browser (Google
+requires this for authorizing any script, it can't be done on your behalf).
 
 ---
 
-## Step 1 — Create the Google Sheet
+## Step 1 — Add the Apps Script
 
-1. Go to https://sheets.google.com and create a **Blank spreadsheet**. Name it anything, e.g. "SRL Links".
-2. Rename the first tab (bottom-left, double-click it) to exactly: `Links`
-3. In row 1, add these three headers, one per cell: `code`, `url`, `createdAt`
-
-## Step 2 — Add the Apps Script
-
-1. In the Sheet, go to **Extensions → Apps Script**. A new tab opens with a code editor.
+1. Open the [SRL Links sheet](https://docs.google.com/spreadsheets/d/1B-ap6N1ZFN7yw_6Lxkbl8aZs0tVjJ7iHkrsb86sSO7I/edit) and go to **Extensions → Apps Script**. A new tab opens with a code editor.
 2. Delete anything in the default `Code.gs` file.
 3. Open **`AppsScript.gs`** from this project, copy its entire contents, and paste it into the editor.
 4. Click the **save icon** (or Ctrl/Cmd+S). Give the project any name when prompted.
 
-## Step 3 — Deploy it as a Web App
+## Step 2 — Deploy it as a Web App
 
 1. Click **Deploy → New deployment** (top right).
 2. Click the gear icon next to "Select type" and choose **Web app**.
@@ -40,14 +41,17 @@ Total setup time: **~5 minutes, one time only.**
    https://script.google.com/macros/s/AKfycb.../exec
    ```
 
-## Step 4 — Paste the URL into the app
+## Step 3 — Send me that URL
 
-1. Open **`cloud-config.js`** in this project.
-2. Replace the placeholder URL with the one you copied. Save.
+Paste the Web app URL back to me in chat and I'll drop it straight into
+`cloud-config.js` for you and hand back the finished files — no need to
+edit anything yourself.
 
-## Step 5 — Upload and open
+*(Or do it yourself: open **`cloud-config.js`**, replace the placeholder URL with the one you copied, and save.)*
 
-1. Upload `index.html`, `style.css`, `script.js`, and `cloud-config.js` to your site (same folder). `AppsScript.gs` and `links.json` are not needed on the server — only the four files above.
+## Step 4 — Upload and open
+
+1. Upload `index.html`, `style.css`, `script.js`, and `cloud-config.js` to your site (same folder). `AppsScript.gs` is not needed on the server — it only lives inside the Google Sheet.
 2. Open `yoursite.com/` (or `yoursite.com/index.html`).
 3. The status dot near the top should turn **green** with "Synced — links work on any device". If it's red, see Troubleshooting below.
 4. Shorten a URL, then open the short link on a *different* device — it should redirect. No redeploy, ever again.
