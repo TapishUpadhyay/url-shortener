@@ -37,6 +37,15 @@
             <a href="#" id="resultShort" class="short-link" target="_blank" rel="noopener"></a>
             <button type="button" id="copyBtn" class="copy-btn">Copy</button>
         </div>
+
+        <div id="jsonSnippetBox" class="json-snippet-box" style="display:none;">
+            <p class="result-label">⚠️ Works on this device only — to make it work everywhere:</p>
+            <p class="snippet-instructions">Copy the line below, paste it inside <code>links.json</code>, then redeploy your site.</p>
+            <div class="short-link-row">
+                <code id="jsonSnippet" class="json-snippet"></code>
+                <button type="button" id="copySnippetBtn" class="copy-btn">Copy</button>
+            </div>
+        </div>
     </div>
 
     <div class="section">
@@ -46,6 +55,7 @@
                 <tr>
                     <th>Short Link</th>
                     <th>Original URL</th>
+                    <th>Scope</th>
                     <th></th>
                 </tr>
             </thead>
@@ -55,9 +65,10 @@
     </div>
 
     <p class="note">
-        Note: links created here are saved in <em>this browser only</em>.
-        Opening a short link on a different browser or device won't redirect,
-        since there's no shared server database. See the README for details.
+        <strong>🌐 Live</strong> links are stored in <code>links.json</code> and work on any device.
+        <strong>💻 This device</strong> links are saved only in this browser — copy the JSON
+        snippet shown after shortening and add it to <code>links.json</code> to make a link global.
+        See the README for full details.
     </p>
 </div>
 

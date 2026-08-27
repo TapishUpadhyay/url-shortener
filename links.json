@@ -1,0 +1,5 @@
+{
+  "_comment": "This file is SRL's shared, site-wide link database. Every visitor's browser loads this same file, so any code listed here works on ANY device. To make a short link work for everyone (not just the browser that created it), copy the generated entry from the app and paste it in below, then redeploy the site.",
+
+  "demo01": "https://www.anthropic.com"
+}

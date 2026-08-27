@@ -163,6 +163,45 @@ body {
 }
 .copy-btn:hover { background: #3a2ab3; }
 
+/* --- JSON snippet box --- */
+.json-snippet-box {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px dashed #d9d6ff;
+}
+.snippet-instructions {
+    font-size: 13px;
+    color: #666;
+    margin: 2px 0 8px;
+}
+.json-snippet {
+    background: #2d2a4a;
+    color: #f0eeff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    word-break: break-all;
+    flex: 1;
+}
+
+/* --- Badges --- */
+.badge {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.badge-live {
+    background: #e6f9ee;
+    color: #1e7e45;
+}
+.badge-local {
+    background: #fff4e0;
+    color: #a86500;
+}
+
 /* --- Recent links table --- */
 .section { margin-top: 30px; }
 .section h2 {

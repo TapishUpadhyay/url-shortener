@@ -1,6 +1,0 @@
-{
-  "rewrites": [
-    { "source": "/srl", "destination": "/srl.html" },
-    { "source": "/srl/:code", "destination": "/srl.html" }
-  ]
-}

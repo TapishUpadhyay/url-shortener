@@ -1,36 +1,8 @@
 # SRL — Shorten URL
 
-A tiny, brand-able URL shortener built with **plain HTML, CSS, and JavaScript only** — no backend, no build tools, no dependencies.
+A brand-able URL shortener built with **plain HTML, CSS, and JavaScript only** — no backend, no build tools, no server framework.
 
 Made with ❤️ by tapish
-
----
-
-## Live URL scheme
-
-Once deployed on your domain (e.g. `tapish.online`), the app is designed to live at:
-
-- **App / form:** `tapish.online/srl`
-- **Short links look like:** `tapish.online/srl/xyzw` (6-character random code)
-- **No-config fallback (always works, no server setup needed):** `tapish.online/srl.html?c=xyzw`
-
-## ⚠️ Important — read this first
-
-This is a **pure front-end** tool. There is no server and no shared database.
-
-That means:
-- Every short link is saved in the **`localStorage` of the browser that created it**.
-- If **you** open `tapish.online/srl/xyzw` on the same browser/device where you created it → it redirects correctly. ✅
-- If **someone else** (or you, on a different browser/device) opens that same link → it will say "not found," because that browser has no record of it. ❌
-
-This is a fundamental limitation of an HTML/CSS/JS-only shortener — a real, globally shareable shortener needs a server + database to look up codes for any visitor. If you outgrow this limitation, see **"Upgrading to a real shared shortener"** below.
-
-This tool is great for:
-- A personal/local URL-shortening utility
-- A portfolio/demo project
-- Learning how URL shorteners work under the hood
-
-It is **not** meant for sharing short links publicly with other people yet.
 
 ---
 
@@ -38,67 +10,96 @@ It is **not** meant for sharing short links publicly with other people yet.
 
 ```
 srl-url-shortener/
-├── srl.html          # The entire app: shorten form + redirect handler, in one page
-├── style.css          # Styling / branding
-├── script.js          # All logic: validation, code generation, localStorage, redirect
-├── vercel.json         # Rewrite rule so /srl/xyzw serves srl.html (for Vercel hosting)
-├── _redirects           # Equivalent rewrite rule for Netlify hosting
+├── srl.html        # The whole app: shorten form + redirect handler, in one page
+├── style.css        # Styling / branding
+├── script.js        # All logic: validation, code generation, storage, redirect
+├── links.json         # Shared, site-wide link database (see below)
 └── README.md
 ```
 
-## How it works
+There is **no `vercel.json`** in this version on purpose — it caused a conflict with an existing `vercel.json` on the target domain last time. If you deploy this to a project that has no existing `vercel.json`, everything still works using the `?c=xyzw` link format described below, with zero configuration needed.
 
-1. **Shortening a URL**
-   - You paste a long URL into the form on `srl.html`.
-   - JavaScript validates it (must be non-empty and start with `http://` or `https://`, checked via the browser's built-in `URL` parser).
-   - A random 6-character alphanumeric code is generated and checked for uniqueness against what's already stored.
-   - The mapping `{ code → { url, createdAt } }` is saved into `localStorage` under the key `srl_links`.
-   - The short link is displayed as `https://tapish.online/srl/<code>`, with a **Copy** button.
-   - Re-shortening the same URL reuses its existing code instead of creating a duplicate.
-   - A "Recent Links" table lists your last 20 shortened links with delete buttons.
+---
 
-2. **Visiting a short link**
-   - `srl.html` is loaded for *any* request under `/srl/...` (see hosting setup below).
-   - On load, the script inspects the URL:
-     - If the path looks like `/srl/<code>`, or there's a `?c=<code>` query parameter, it treats this as a **redirect visit**.
-     - It looks up `<code>` in `localStorage`. If found, it briefly shows "Redirecting you to…" and then sends the browser to the original URL via `window.location.replace(...)`.
-     - If not found (wrong browser, deleted, or made up), it shows a friendly "not found" message instead of crashing.
-   - If the path is just `/srl` or `/srl.html` (no code), it shows the normal shorten form.
+## ⚠️ How cross-device links actually work — please read this
 
-## Why you need one tiny config file for clean paths
+A plain HTML/CSS/JS site has no server and no database, so there is no fully automatic way for a link created on your phone to instantly work on someone else's laptop. That's not a bug in this app — it's just what "no backend" means. This project gets as close as possible to cross-device support using two layers:
 
-Static file hosting normally only serves files that actually exist. `srl.html` is a real file, so `/srl.html` works out of the box on any host. But `/srl/xyzw` isn't a real file or folder — it's a "clean path" that needs to be told to load `srl.html` anyway, so the JavaScript inside can read the code from the URL and do the redirect.
+### 1. `links.json` — the shared, site-wide database
+This is a real file that ships with your website. **Every visitor's browser downloads this exact same file**, so any code listed inside it works identically on any device, anywhere, instantly. This is what makes a link *truly* shareable.
 
-That's what the extra config file does — it's **hosting configuration, not application code**:
+The catch: since there's no backend to write to this file automatically, **adding a new entry requires you to manually edit `links.json` and redeploy the site.** There's no way around this without adding a real server — it's the fundamental tradeoff of "HTML/CSS/JS only."
 
-- **Vercel** → `vercel.json` (included) — rewrites both `/srl` and `/srl/:code` to `/srl.html`.
-- **Netlify** → `_redirects` (included) — does the same thing in Netlify's format.
-- **GitHub Pages** (no rewrite support) → copy `srl.html` to `404.html` at your site root. GitHub Pages serves your custom 404 page for any unmatched path, and the script inside will still correctly read `/srl/xyzw` from the URL and redirect.
-- **Any other static host** → look for a "rewrites," "redirects," or "custom 404" feature and point `/srl/*` at `srl.html`.
+### 2. `localStorage` — your personal, this-device-only cache
+When you shorten a URL in the app, it's saved instantly to your browser's `localStorage` so the link works on your device right away, with zero extra steps. But it is **not visible to any other browser or device** — not even yours, on a different phone/laptop.
 
-If you don't want to bother with hosting config at all, you can always fall back to sharing links in the query-string form, which needs zero setup:
+### The workflow this creates
+1. You paste a long URL and click **Shorten**.
+2. It's saved to `localStorage` immediately — the short link (`?c=xyzw`) works on your current device right now. The table shows it tagged **💻 This device**.
+3. Below the result, you'll see a ready-to-copy line like:
+   ```
+   "xyzw": "https://your-long-url.com"
+   ```
+4. Paste that line inside `links.json` (before the closing `}`), save, and redeploy your site.
+5. Once redeployed, that link is tagged **🌐 Live** and will work for anyone, on any device — because it's now part of the file every visitor downloads.
+
+If you skip step 4, the link only ever works on the browser that created it.
+
+---
+
+## URL format
+
+- **App:** `tapish.online/srl.html`
+- **Short link:** `tapish.online/srl.html?c=xyzw`
+
+The `?c=` query-string format is used because it works on **any** static host with **zero configuration** — no rewrite rules, no `vercel.json`, nothing that could conflict with an existing site config. If you'd like the prettier path style `tapish.online/srl/xyzw` instead, you can add a rewrite rule later (ask and I can provide one scoped so it won't clash with your existing config), but it's optional — everything works today without it.
+
+## Editing `links.json`
+
+The file looks like this:
+
+```json
+{
+  "_comment": "This file is SRL's shared, site-wide link database...",
+
+  "demo01": "https://www.anthropic.com"
+}
 ```
-tapish.online/srl.html?c=xyzw
+
+- `_comment` is just a human note and is ignored by the app — leave it or remove it, doesn't matter.
+- Every other key is a short code, and its value is the destination URL.
+- Keys must be unique. Keep the file valid JSON (commas between entries, no trailing comma after the last one).
+
+Example with two live links:
+```json
+{
+  "_comment": "SRL shared link database",
+  "demo01": "https://www.anthropic.com",
+  "abC123": "https://example.com/some/long/path?x=1"
+}
 ```
 
-## Deploying on `tapish.online/srl`
+## How the app decides where to redirect
 
-1. Upload `srl.html`, `style.css`, and `script.js` to your site (e.g. the root of your Vercel/Netlify project).
-2. Add whichever config file matches your host (`vercel.json` or `_redirects` are already included — just make sure it sits at your project root).
-3. Visit `tapish.online/srl` — you should see the SRL form.
-4. Shorten a URL, then click the generated `tapish.online/srl/xyzw` link to confirm the redirect works.
+When someone opens a short link, `script.js`:
+1. Fetches `links.json` and checks if the code exists there first (this is what makes a link work on any device).
+2. If not found there, it checks this browser's own `localStorage` (device-only fallback).
+3. If found in either place, it redirects to the stored URL after a brief "Redirecting…" message.
+4. If found in neither, it shows a friendly "not found" message instead of breaking.
+
+## Deploying
+
+1. Upload `srl.html`, `style.css`, `script.js`, and `links.json` to your site (same folder).
+2. Visit `tapish.online/srl.html` — you should see the SRL form.
+3. Shorten a URL and confirm the `?c=xyzw` link redirects correctly on your device.
+4. To make a link global: copy its JSON snippet into `links.json`, redeploy, and confirm the badge changes to **🌐 Live**.
 
 ## Customization
 
 - **Code length:** change `CODE_LENGTH` in `script.js` (default is 6).
-- **Colors/branding:** edit the colors in `style.css` (currently a purple gradient theme).
+- **Colors/branding:** edit the colors in `style.css` (purple gradient theme by default).
 - **Footer credit:** edit the `<footer>` line in `srl.html`.
 
-## Upgrading to a real shared shortener (optional, future work)
+## If you want *fully* automatic cross-device links later
 
-If you later want short links that work for *anyone*, not just your own browser, you'd need some place to store the code→URL mapping that every visitor's browser can read — for example:
-- A small backend + database (like a Flask/SQLite version), or
-- A serverless function backed by a hosted database (Vercel + Postgres/Turso/Supabase), or
-- A free key-value API (e.g. a JSON storage service) called from this same front-end code.
-
-That's a bigger project than "HTML/CSS/JS only," but the front-end you have here (validation, code generation, UI, redirect logic) would mostly carry over — you'd just swap the `localStorage` calls for `fetch()` calls to that storage.
+That requires a small backend (even a lightweight one) that can write to a shared database whenever anyone submits a URL — for example, a serverless function backed by a hosted database, or a small server like the earlier Flask/SQLite version. That's outside the "HTML/CSS/JS only" scope of this build, but the front-end here (the form, validation, code generation, and redirect logic) would carry over largely unchanged — you'd just replace the manual "edit `links.json` and redeploy" step with an automatic API call.
