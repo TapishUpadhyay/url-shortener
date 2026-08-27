@@ -8,19 +8,31 @@
 </head>
 <body>
 
-<!-- ============ REDIRECT VIEW (shown only when visiting /srl/<code>) ============ -->
+<!-- ============ REDIRECT VIEW (shown only when visiting ?c=xyzw) ============ -->
 <div class="container redirect-view" id="redirectView" style="display:none;">
     <div class="logo">SRL</div>
     <div id="redirectSpinner" class="spinner"></div>
     <p id="redirectMessage">Redirecting you to your destination…</p>
     <p id="redirectSubMessage" class="muted"></p>
-    <a href="index.html" class="back-link" id="backLink" style="display:none;">&larr; Go to SRL home</a>
+    <a href="srl.html" class="back-link" id="backLink" style="display:none;">&larr; Go to SRL home</a>
 </div>
 
 <!-- ============ MAIN APP VIEW (shorten form) ============ -->
 <div class="container main-view" id="mainView">
     <div class="logo">SRL</div>
     <p class="tagline">Shorten URL — simple, fast, yours.</p>
+
+    <!-- Shown automatically if firebase-config.js still has placeholder values -->
+    <div id="setupBanner" class="setup-banner" style="display:none;">
+        ⚠️ <strong>Cloud sync isn't set up yet.</strong> Links will only save to this device
+        until you add your Firebase config to <code>firebase-config.js</code>.
+        See <code>SETUP.md</code> for the 5-minute walkthrough.
+    </div>
+
+    <div class="status-row">
+        <span id="statusDot" class="status-dot"></span>
+        <span id="statusText">Connecting…</span>
+    </div>
 
     <div id="flash" class="flash" style="display:none;"></div>
 
@@ -37,15 +49,6 @@
             <a href="#" id="resultShort" class="short-link" target="_blank" rel="noopener"></a>
             <button type="button" id="copyBtn" class="copy-btn">Copy</button>
         </div>
-
-        <div id="jsonSnippetBox" class="json-snippet-box" style="display:none;">
-            <p class="result-label">⚠️ Works on this device only — to make it work everywhere:</p>
-            <p class="snippet-instructions">Copy the line below, paste it inside <code>links.json</code>, then redeploy your site.</p>
-            <div class="short-link-row">
-                <code id="jsonSnippet" class="json-snippet"></code>
-                <button type="button" id="copySnippetBtn" class="copy-btn">Copy</button>
-            </div>
-        </div>
     </div>
 
     <div class="section">
@@ -55,7 +58,7 @@
                 <tr>
                     <th>Short Link</th>
                     <th>Original URL</th>
-                    <th>Scope</th>
+                    <th>Status</th>
                     <th></th>
                 </tr>
             </thead>
@@ -65,15 +68,19 @@
     </div>
 
     <p class="note">
-        <strong>🌐 Live</strong> links are stored in <code>links.json</code> and work on any device.
-        <strong>💻 This device</strong> links are saved only in this browser — copy the JSON
-        snippet shown after shortening and add it to <code>links.json</code> to make a link global.
-        See the README for full details.
+        <strong>🌐 Live</strong> links are stored in the cloud and work instantly on any device, anywhere —
+        no redeploying needed. If you're offline or cloud sync isn't set up, links are saved to this
+        device only and marked <strong>💻 This device</strong>.
     </p>
 </div>
 
 <footer>Made with ❤️ by tapish</footer>
 
+<!-- Firebase (client SDK only — no server code) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+
+<script src="firebase-config.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
