@@ -1,0 +1,222 @@
+* {
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+html, body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #6C63FF, #4834d4);
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 50px 15px 20px;
+}
+
+.container {
+    background: #fff;
+    max-width: 640px;
+    width: 100%;
+    border-radius: 14px;
+    padding: 40px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+}
+
+.logo {
+    text-align: center;
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #4834d4;
+    margin-bottom: 4px;
+}
+
+.tagline {
+    text-align: center;
+    color: #888;
+    font-size: 14px;
+    margin-bottom: 28px;
+}
+
+/* --- Redirect view --- */
+.redirect-view {
+    text-align: center;
+}
+.spinner {
+    width: 40px;
+    height: 40px;
+    margin: 20px auto;
+    border: 4px solid #e0e0f8;
+    border-top-color: #6C63FF;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+#redirectMessage {
+    font-size: 16px;
+    color: #333;
+}
+.muted {
+    color: #999;
+    font-size: 13px;
+}
+.back-link {
+    display: inline-block;
+    margin-top: 15px;
+    color: #6C63FF;
+    text-decoration: none;
+    font-weight: 600;
+}
+.back-link:hover { text-decoration: underline; }
+
+/* --- Flash messages --- */
+.flash {
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 18px;
+    font-size: 14px;
+}
+.flash.success { background: #e6f9ee; color: #1e7e45; }
+.flash.error { background: #fdecea; color: #b3261e; }
+
+/* --- Shorten form --- */
+.shorten-form {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+.shorten-form input {
+    flex: 1;
+    min-width: 200px;
+    padding: 13px 16px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 15px;
+}
+.shorten-form input:focus {
+    outline: none;
+    border-color: #6C63FF;
+}
+.shorten-form button {
+    padding: 13px 24px;
+    background: #6C63FF;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 700;
+}
+.shorten-form button:hover { background: #574fd6; }
+
+/* --- Result box --- */
+.result-box {
+    background: #f4f3ff;
+    border: 1px solid #d9d6ff;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin: 20px 0;
+}
+.result-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888;
+    margin: 6px 0 2px;
+}
+.original-url {
+    font-size: 14px;
+    color: #444;
+    word-break: break-all;
+    margin: 0;
+}
+.short-link-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+}
+.short-link {
+    font-size: 18px;
+    font-weight: 700;
+    color: #4834d4;
+    text-decoration: none;
+    word-break: break-all;
+}
+.short-link:hover { text-decoration: underline; }
+.copy-btn {
+    padding: 7px 16px;
+    font-size: 13px;
+    background: #4834d4;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+.copy-btn:hover { background: #3a2ab3; }
+
+/* --- Recent links table --- */
+.section { margin-top: 30px; }
+.section h2 {
+    font-size: 15px;
+    color: #333;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 8px;
+}
+table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+th, td {
+    text-align: left;
+    padding: 9px 6px;
+    font-size: 13px;
+    border-bottom: 1px solid #f0f0f0;
+}
+th {
+    color: #999;
+    text-transform: uppercase;
+    font-size: 11px;
+}
+td.short a, td a {
+    color: #6C63FF;
+    text-decoration: none;
+    font-weight: 600;
+}
+td a:hover { text-decoration: underline; }
+td.original {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.delete-btn {
+    background: none;
+    border: none;
+    color: #b3261e;
+    cursor: pointer;
+    font-size: 12px;
+}
+.empty { color: #999; font-style: italic; font-size: 14px; }
+
+.note {
+    margin-top: 25px;
+    font-size: 12px;
+    color: #999;
+    line-height: 1.5;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 15px;
+}
+
+footer {
+    margin-top: 25px;
+    color: #eee;
+    font-size: 13px;
+    text-align: center;
+    padding-bottom: 20px;
+}
