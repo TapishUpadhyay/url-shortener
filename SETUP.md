@@ -1,96 +1,56 @@
-# SRL v3 — Cloud Setup Guide
+# SRL v3 — Cloud Setup Guide (Google Sheets)
 
-This version fixes the "redeploy every time" problem. Links now save to a
-free cloud database (Firebase Realtime Database) instead of a static
-`links.json` file, so a link created on your phone works instantly on
-your laptop, a friend's phone, anywhere — no redeploying, no editing
-files by hand.
+This version fixes the "redeploy every time" problem using a Google Sheet
+as the shared database, instead of the static `links.json` file. A link
+created on your phone will work instantly on your laptop, a friend's
+phone, anywhere — no redeploying, no editing files by hand. You can even
+open the sheet and see every link as a normal spreadsheet.
 
-You still don't write or host any server code. Firebase's free plan is
-generous enough that a personal URL shortener will likely never come
-close to its limits.
+You still don't write or host any server. Google runs the small script
+for you, for free.
 
 Total setup time: **~5 minutes, one time only.**
 
 ---
 
-## Step 1 — Create a free Firebase project
+## Step 1 — Create the Google Sheet
 
-1. Go to https://console.firebase.google.com and sign in with any Google account.
-2. Click **Add project**.
-3. Give it any name (e.g. `srl-shortener`). Disable Google Analytics for this project (not needed) — untick the box if asked.
-4. Click **Create project** and wait ~30 seconds.
+1. Go to https://sheets.google.com and create a **Blank spreadsheet**. Name it anything, e.g. "SRL Links".
+2. Rename the first tab (bottom-left, double-click it) to exactly: `Links`
+3. In row 1, add these three headers, one per cell: `code`, `url`, `createdAt`
 
-## Step 2 — Create a Realtime Database
+## Step 2 — Add the Apps Script
 
-1. In the left sidebar of your new project, click **Build → Realtime Database**.
-2. Click **Create Database**.
-3. Choose any region (closest to you is fine).
-4. When asked about security rules, choose **Start in test mode** for now — we'll lock it down properly in Step 4.
+1. In the Sheet, go to **Extensions → Apps Script**. A new tab opens with a code editor.
+2. Delete anything in the default `Code.gs` file.
+3. Open **`AppsScript.gs`** from this project, copy its entire contents, and paste it into the editor.
+4. Click the **save icon** (or Ctrl/Cmd+S). Give the project any name when prompted.
 
-## Step 3 — Register a Web App and get your config
+## Step 3 — Deploy it as a Web App
 
-1. In the left sidebar, click the **gear icon → Project settings**.
-2. Scroll to **Your apps** and click the **</> (Web)** icon to add a web app.
-3. Give it any nickname (e.g. `srl-web`) and click **Register app**. You don't need Firebase Hosting.
-4. You'll see a code block with a `firebaseConfig` object that looks like this:
-
-   ```js
-   const firebaseConfig = {
-     apiKey: "AIzaSy...",
-     authDomain: "srl-shortener-xxxxx.firebaseapp.com",
-     databaseURL: "https://srl-shortener-xxxxx-default-rtdb.firebaseio.com",
-     projectId: "srl-shortener-xxxxx",
-     storageBucket: "srl-shortener-xxxxx.appspot.com",
-     messagingSenderId: "1234567890",
-     appId: "1:1234567890:web:abcdef123456"
-   };
+1. Click **Deploy → New deployment** (top right).
+2. Click the gear icon next to "Select type" and choose **Web app**.
+3. Fill in:
+   - **Execute as:** Me
+   - **Who has access:** Anyone
+4. Click **Deploy**.
+5. Google will ask you to authorize the script — click **Authorize access**, choose your account, and click **Advanced → Go to [project name] (unsafe)** → **Allow**. (This warning is normal for scripts you write yourself — it's just Google being cautious about any script that can edit a sheet.)
+6. Copy the **Web app URL** shown — it looks like:
+   ```
+   https://script.google.com/macros/s/AKfycb.../exec
    ```
 
-5. Copy that whole object and paste it into **`firebase-config.js`** in this
-   project, replacing the placeholder values. Save the file.
+## Step 4 — Paste the URL into the app
 
-   > This is safe to publish/commit publicly. These values just tell your
-   > app *which* Firebase project to talk to — they are not secret keys.
-   > Actual access control happens in Step 4.
-
-## Step 4 — Set your database rules
-
-By default "test mode" allows anyone to read/write for 30 days, then it
-locks everything. Set permanent rules instead:
-
-1. In **Realtime Database**, click the **Rules** tab.
-2. Replace the contents with this and click **Publish**:
-
-   ```json
-   {
-     "rules": {
-       "links": {
-         ".read": true,
-         ".write": true,
-         "$code": {
-           ".validate": "newData.hasChildren(['url', 'createdAt']) && newData.child('url').isString() && newData.child('url').val().matches(/^https?:\\/\\/.+/)"
-         }
-       }
-     }
-   }
-   ```
-
-   This allows anyone to create a short link (which is how a public
-   shortener is supposed to work — same as bit.ly), while requiring every
-   entry to actually look like a valid `http(s)://` URL, which blocks
-   junk/malformed writes.
-
-   **Want it locked to just you?** Add Firebase Authentication and change
-   `.write` to `"auth != null"`. Ask me if you'd like this — it's a
-   slightly bigger change to the code.
+1. Open **`cloud-config.js`** in this project.
+2. Replace the placeholder URL with the one you copied. Save.
 
 ## Step 5 — Upload and open
 
-1. Upload `index.html`, `style.css`, `script.js`, and `firebase-config.js` to your site (same folder — same as before, `links.json` is no longer needed and can be deleted).
-2. Open `yoursite.com/index.html`.
-3. The small dot near the top should turn **green** with "Synced — links work on any device". If it's red, double check `firebase-config.js` and the database rules.
-4. Shorten a URL, then open the short link on a *different* device — it should redirect immediately. No redeploy, ever again.
+1. Upload `index.html`, `style.css`, `script.js`, and `cloud-config.js` to your site (same folder). `AppsScript.gs` and `links.json` are not needed on the server — only the four files above.
+2. Open `yoursite.com/` (or `yoursite.com/index.html`).
+3. The status dot near the top should turn **green** with "Synced — links work on any device". If it's red, see Troubleshooting below.
+4. Shorten a URL, then open the short link on a *different* device — it should redirect. No redeploy, ever again.
 
 ---
 
@@ -98,21 +58,29 @@ locks everything. Set permanent rules instead:
 
 | | v2 | v3 |
 |---|---|---|
-| Shared storage | `links.json` (static file) | Firebase Realtime Database (live) |
-| Making a link global | Manually edit `links.json` + redeploy | Automatic, instant |
+| Shared storage | `links.json` (static file) | Google Sheet, via Apps Script (live) |
+| Making a link global | Manually edit `links.json` + redeploy | Automatic |
 | Per-device fallback | `localStorage` | `localStorage` (only used if offline / not configured) |
-| Files needed | `index.html`, `style.css`, `script.js`, `links.json` | `index.html`, `style.css`, `script.js`, `firebase-config.js` |
+| Files needed on your site | `index.html`, `style.css`, `script.js`, `links.json` | `index.html`, `style.css`, `script.js`, `cloud-config.js` |
+| Seeing all links | Open `links.json` | Open the Google Sheet |
 
-## Free tier limits (Firebase Spark plan)
+## How it works, briefly
 
-- 1 GB stored, 10 GB/month downloaded, 100 simultaneous connections.
-- A URL shortener stores maybe ~100 bytes per link — this is enough for
-  hundreds of thousands of links for a personal/small project, free,
-  indefinitely.
+- **Reading** links: the page fetches the Apps Script URL (a GET request), which reads every row of the `Links` tab and returns it as JSON.
+- **Writing** a link: the page sends a POST request with the new code/URL; the script appends a row to the sheet.
+- Other devices pick up new links automatically — the page re-checks the sheet every 15 seconds while open, and always checks fresh right before redirecting a short link.
+- There's a small (usually under 1 second) delay on each request since Google spins up the script on demand — this is normal for Apps Script and not something to worry about for personal use.
+
+## Limits (free, no billing account needed)
+
+Apps Script's free quota allows roughly 20,000 requests per day — far more
+than a personal or small-team shortener will ever use.
 
 ## Troubleshooting
 
-- **Status dot stays grey/red:** check the browser console (F12) for the
-  exact error — usually a typo in `firebase-config.js` or rules not published yet.
-- **"Permission denied" on save:** your database rules weren't published, or don't allow writes to `links`.
-- **Links work on your device but not others:** that link was saved while cloud sync was down — check the status dot was green when you created it.
+- **Status dot stays red:** open the browser console (F12) and check the error. Common causes:
+  - The URL in `cloud-config.js` still has `YOUR_DEPLOYMENT_ID` in it.
+  - "Who has access" wasn't set to **Anyone** when deploying.
+  - The sheet tab isn't named exactly `Links`, or is missing the header row.
+- **You edited `AppsScript.gs` later:** you must click **Deploy → Manage deployments → edit (pencil) → New version → Deploy** for changes to take effect — saving alone isn't enough.
+- **"Code already exists" errors:** extremely rare (6-character random codes), just try shortening again.

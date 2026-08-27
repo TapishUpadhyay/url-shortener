@@ -1,74 +1,96 @@
 /*
- * SRL — Shorten URL (v3, cloud-synced)
+ * SRL — Shorten URL (v3, Google Sheets–synced)
  * Pure client-side app (HTML/CSS/JS only) — no backend server *you* write.
  * Made with love by tapish.
  *
  * HOW CROSS-DEVICE LINKS WORK NOW
  * --------------------------------
- * Links are stored in a Firebase Realtime Database, a free hosted cloud
- * database. Your browser talks to it directly over the internet using
- * only the Firebase JS SDK (a script tag) — there's no server code for
- * you to write, host, or maintain, and no redeploy needed to add a link.
+ * Links are stored as rows in a Google Sheet. A small Google Apps Script
+ * (pasted once into that sheet — see SETUP.md) exposes it as a URL this
+ * page can read from and write to. Google hosts and runs that script for
+ * free — there's no server for you to build or maintain, and no redeploy
+ * needed to add a link. You can even open the sheet and see every link
+ * as a normal spreadsheet.
  *
- * 1. Cloud (Firebase) — the shared, live database. Any link saved here
- *    works instantly on every device, everywhere, the moment it's saved.
- * 2. localStorage — a local-only fallback. Used only if Firebase isn't
- *    configured yet (see firebase-config.js) or the device is offline.
+ * 1. Cloud (Google Sheet, via Apps Script) — the shared, live database.
+ *    Any link saved here works instantly on every device, everywhere.
+ * 2. localStorage — a local-only fallback. Used only if cloud sync isn't
+ *    configured yet (see cloud-config.js) or the device is offline.
  *    Links saved here work only on that one browser until connectivity
- *    is restored, at which point SRL will try to sync them to the cloud.
+ *    is restored.
  *
  * URL SCHEME
  * ----------
- * Base app:   yoursite.com/index.html
+ * Base app:   yoursite.com/index.html  (or just yoursite.com/)
  * Short link: yoursite.com/index.html?c=xyzw   (works with zero server config)
  */
 
 const LOCAL_STORAGE_KEY = "srl_links_local";
 const CODE_LENGTH = 6;
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+const POLL_INTERVAL_MS = 15000; // refresh cloud links periodically so other devices' new links show up
 
-let cloudLinks = {};       // code -> { url, createdAt }  (from Firebase, live)
-let cloudReady = false;    // true once Firebase has connected at least once
-let dbRef = null;
+let cloudLinks = {};       // code -> { url, createdAt }  (from the Sheet)
+let cloudReady = false;    // true once the first successful cloud read completes
+let cloudAvailable = false; // true if cloud-config.js has a real URL in it
 
-/* ---------------- Firebase setup ---------------- */
+/* ---------------- Cloud (Google Sheets via Apps Script) ---------------- */
 
-function isFirebaseConfigured() {
-    return typeof firebaseConfig !== "undefined" &&
-        firebaseConfig.apiKey &&
-        firebaseConfig.apiKey !== "YOUR_API_KEY" &&
-        firebaseConfig.databaseURL &&
-        !firebaseConfig.databaseURL.includes("YOUR_PROJECT_ID");
+function isCloudConfigured() {
+    return typeof CLOUD_API_URL !== "undefined" &&
+        CLOUD_API_URL &&
+        !CLOUD_API_URL.includes("YOUR_DEPLOYMENT_ID");
 }
 
-function initFirebase() {
-    if (!isFirebaseConfigured()) {
+async function fetchCloudLinks() {
+    const res = await fetch(CLOUD_API_URL, { method: "GET", cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data && data.error) throw new Error(data.error);
+    return data || {};
+}
+
+async function pushCloudLink(code, url) {
+    // Sent as text/plain (not application/json) on purpose: this keeps it a
+    // "simple request" so the browser skips a CORS preflight, which Apps
+    // Script web apps don't handle. The script still parses it as JSON.
+    const res = await fetch(CLOUD_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ code, url, createdAt: Date.now() }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data && data.error) throw new Error(data.error);
+    return data;
+}
+
+async function refreshCloudLinks(silent) {
+    if (!cloudAvailable) return;
+    try {
+        cloudLinks = await fetchCloudLinks();
+        cloudReady = true;
+        setStatus(true, "Synced — links work on any device");
+        if (document.getElementById("mainView").style.display !== "none") {
+            renderLinksTable();
+        }
+    } catch (e) {
+        console.error("SRL: cloud read failed", e);
+        if (!silent) setStatus(false, "Can't reach the cloud — this device only");
+    }
+}
+
+function initCloud() {
+    cloudAvailable = isCloudConfigured();
+    if (!cloudAvailable) {
         document.getElementById("setupBanner").style.display = "block";
         setStatus(false, "Cloud sync not configured — this device only");
-        return;
+        return Promise.resolve();
     }
-
-    try {
-        firebase.initializeApp(firebaseConfig);
-        dbRef = firebase.database().ref("links");
-
-        // Live listener: keeps cloudLinks in sync in real time, on every
-        // device, for as long as the page is open.
-        dbRef.on("value", (snapshot) => {
-            cloudLinks = snapshot.val() || {};
-            cloudReady = true;
-            setStatus(true, "Synced — links work on any device");
-            if (document.getElementById("mainView").style.display !== "none") {
-                renderLinksTable();
-            }
-        }, (err) => {
-            console.error("SRL: Firebase read failed", err);
-            setStatus(false, "Can't reach the cloud — this device only");
-        });
-    } catch (e) {
-        console.error("SRL: Firebase init failed", e);
-        setStatus(false, "Cloud sync error — this device only");
-    }
+    setStatus(false, "Connecting…");
+    const first = refreshCloudLinks(false);
+    setInterval(() => refreshCloudLinks(true), POLL_INTERVAL_MS);
+    return first;
 }
 
 function setStatus(online, text) {
@@ -120,8 +142,8 @@ function generateCode(existingCodes) {
 
 function buildShortUrl(code) {
     const origin = window.location.origin;
-    const path = window.location.pathname.replace(/\/[^/]*$/, "/index.html");
-    return `${origin}${path}?c=${code}`;
+    const dir = window.location.pathname.replace(/[^/]*$/, "");
+    return `${origin}${dir}?c=${code}`;
 }
 
 function escapeHtml(str) {
@@ -187,8 +209,7 @@ function renderLinksTable() {
             : `<span class="badge badge-local" title="Only works on this browser — cloud sync unavailable when this was saved">💻 This device</span>`;
         const tr = document.createElement("tr");
         tr.innerHTML = `
-            <td class="short"><a href="${shortUrl}" target="_blank" rel="noopener">?c=${escapeHtml(code)}</a></td>
-            <td class="original"><a href="${escapeHtml(url)}" target="_blank" rel="noopener" title="${escapeHtml(url)}">${escapeHtml(url)}</a></td>
+            <td class="short"><a href="${shortUrl}" target="_blank" rel="noopener" title="${escapeHtml(url)}">?c=${escapeHtml(code)}</a></td>
             <td>${badge}</td>
             <td>${scope === "local" ? `<button class="delete-btn" data-code="${escapeHtml(code)}">Delete</button>` : ""}</td>
         `;
@@ -216,14 +237,13 @@ async function handleShorten(longUrl) {
         Object.keys(cloudLinks).find(c => cloudLinks[c].url === longUrl) ||
         Object.keys(localLinks).find(c => localLinks[c].url === longUrl);
 
-    let isNew = false;
     if (!code) {
         code = generateCode(allExistingCodes);
-        isNew = true;
 
-        if (cloudReady && dbRef) {
+        if (cloudAvailable) {
             try {
-                await dbRef.child(code).set({ url: longUrl, createdAt: Date.now() });
+                await pushCloudLink(code, longUrl);
+                cloudLinks[code] = { url: longUrl, createdAt: Date.now() }; // optimistic update
                 showFlash("Short link created — live on any device now.", "success");
             } catch (e) {
                 console.error("SRL: cloud save failed, falling back to local", e);
@@ -241,7 +261,6 @@ async function handleShorten(longUrl) {
     }
 
     const shortUrl = buildShortUrl(code);
-    document.getElementById("resultOriginal").textContent = longUrl;
     const shortLinkEl = document.getElementById("resultShort");
     shortLinkEl.textContent = shortUrl;
     shortLinkEl.href = shortUrl;
@@ -290,20 +309,9 @@ async function initRedirectView(code) {
 
     let targetUrl = null;
 
-    // Prefer the cloud copy (works for everyone). If Firebase hasn't
-    // loaded yet, wait briefly for the live listener to populate it.
-    if (isFirebaseConfigured()) {
+    if (cloudAvailable) {
         if (!cloudReady) {
-            await new Promise((resolve) => {
-                const timeout = setTimeout(resolve, 2500);
-                const check = setInterval(() => {
-                    if (cloudReady) {
-                        clearInterval(check);
-                        clearTimeout(timeout);
-                        resolve();
-                    }
-                }, 100);
-            });
+            await refreshCloudLinks(true);
         }
         if (cloudLinks[code]) {
             targetUrl = cloudLinks[code].url;
@@ -333,10 +341,10 @@ async function initRedirectView(code) {
 
 /* ---------------- Entry point ---------------- */
 
-(function main() {
-    initFirebase();
-
+(async function main() {
     const code = extractCodeFromLocation();
+    await initCloud();
+
     if (code) {
         initRedirectView(code);
     } else {
