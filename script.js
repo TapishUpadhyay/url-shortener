@@ -24,8 +24,8 @@
  *
  * URL SCHEME
  * ----------
- * Base app:   tapish.online/srl.html
- * Short link: tapish.online/srl.html?c=xyzw   (works with zero server config)
+ * Base app:   tapish.online/index.html
+ * Short link: tapish.online/index.html?c=xyzw   (works with zero server config)
  * (Optional clean path tapish.online/srl/xyzw is possible too, but requires
  *  a hosting rewrite rule — see README.md.)
  */
@@ -94,7 +94,7 @@ function generateCode(existingCodes) {
 function buildShortUrl(code) {
     const origin = window.location.origin;
     // Query-string form always works with zero server configuration.
-    return `${origin}/srl.html?c=${code}`;
+    return `${origin}/index.html?c=${code}`;
 }
 
 function escapeHtml(str) {
@@ -114,10 +114,10 @@ function extractCodeFromLocation() {
     if (parts.length === 0) return null;
 
     const last = parts[parts.length - 1].toLowerCase();
-    if (last === "srl" || last === "srl.html") return null;
+    if (last === "srl" || last === "index.html") return null;
 
     const secondLast = parts.length > 1 ? parts[parts.length - 2].toLowerCase() : null;
-    if (secondLast === "srl" || secondLast === "srl.html") {
+    if (secondLast === "srl" || secondLast === "index.html") {
         return parts[parts.length - 1];
     }
 

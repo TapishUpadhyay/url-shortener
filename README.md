@@ -10,7 +10,7 @@ Made with ❤️ by tapish
 
 ```
 srl-url-shortener/
-├── srl.html        # The whole app: shorten form + redirect handler, in one page
+├── index.html        # The whole app: shorten form + redirect handler, in one page
 ├── style.css        # Styling / branding
 ├── script.js        # All logic: validation, code generation, storage, redirect
 ├── links.json         # Shared, site-wide link database (see below)
